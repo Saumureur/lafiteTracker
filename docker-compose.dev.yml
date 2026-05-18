@@ -1,23 +1,25 @@
 services:
   db:
-    image: postgres:17-alpine
+    image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-lafite}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lafite_secret}
-      POSTGRES_DB: ${POSTGRES_DB:-lafite_tracker}
+      ACCEPT_EULA: 'Y'
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Lafite_Secret1!}
+      MSSQL_PID: ${MSSQL_PID:-Developer}
     ports:
-      - '${POSTGRES_PORT:-5432}:5432'
+      - '${MSSQL_PORT:-1433}:1433'
     volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
+      - mssql_dev_data:/var/opt/mssql
+      - ./docker/mssql/init:/usr/config/init:ro
     healthcheck:
       test:
         [
           'CMD-SHELL',
-          'pg_isready -U ${POSTGRES_USER:-lafite} -d ${POSTGRES_DB:-lafite_tracker}',
+          '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" -b -o /dev/null || exit 1',
         ]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 45s
 
   api:
     build:
@@ -29,7 +31,7 @@ services:
       NODE_ENV: development
       PORT: 3000
       WORKSPACE_ROOT: /workspace
-      DATABASE_URL: ${DATABASE_URL:-postgresql://lafite:lafite_secret@db:5432/lafite_tracker}
+      DATABASE_URL: '${DATABASE_URL:-Server=db,1433;Database=lafite_tracker;User Id=sa;Password=Lafite_Secret1!;Encrypt=true;TrustServerCertificate=true}'
     volumes:
       - .:/workspace:cached
     depends_on:
@@ -52,4 +54,4 @@ services:
       - api
 
 volumes:
-  postgres_dev_data:
+  mssql_dev_data:

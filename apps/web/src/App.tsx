@@ -25,7 +25,7 @@ export default function App() {
   return (
     <main className="app">
       <h1>Lafite Tracker</h1>
-      <p>Monorepo pnpm — React + NestJS + PostgreSQL</p>
+      <p>Monorepo pnpm — React + NestJS + SQL Server</p>
       <section className="card">
         <h2>API /status</h2>
         {error && <p className="error">{error}</p>}

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Pool } from 'pg';
+import sql from 'mssql';
 
 @Injectable()
 export class StatusService {
@@ -12,14 +12,15 @@ export class StatusService {
       'not_configured';
 
     if (databaseUrl) {
-      const pool = new Pool({ connectionString: databaseUrl });
+      let pool: sql.ConnectionPool | undefined;
       try {
-        await pool.query('SELECT 1');
+        pool = await sql.connect(databaseUrl);
+        await pool.request().query('SELECT 1');
         database = 'connected';
       } catch {
         database = 'disconnected';
       } finally {
-        await pool.end();
+        await pool?.close();
       }
     }
 
