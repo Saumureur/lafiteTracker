@@ -10,7 +10,6 @@ services:
       - '${MSSQL_PORT:-1433}:1433'
     volumes:
       - mssql_data:/var/opt/mssql
-      - ./docker/mssql/init:/usr/config/init:ro
     healthcheck:
       test:
         [
@@ -21,6 +20,20 @@ services:
       timeout: 5s
       retries: 10
       start_period: 45s
+
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-Lafite_Secret1!}
+      MSSQL_HOST: db
+    volumes:
+      - ./docker/mssql/init:/init:ro
+      - ./docker/mssql/run-init.sh:/run-init.sh:ro
+    entrypoint: ['/bin/bash', '/run-init.sh']
+    restart: 'no'
 
   api:
     build:
@@ -34,18 +47,18 @@ services:
       PORT: 3000
       DATABASE_URL: '${DATABASE_URL:-Server=db,1433;Database=lafite_tracker;User Id=sa;Password=Lafite_Secret1!;Encrypt=true;TrustServerCertificate=true}'
     depends_on:
-      db:
-        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
 
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
     restart: unless-stopped
     ports:
       - '${WEB_PORT:-5173}:80'
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
     depends_on:
       - api
 

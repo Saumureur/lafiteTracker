@@ -10,14 +10,9 @@ COPY apps/web/package.json apps/web/
 
 RUN pnpm install --frozen-lockfile
 
-COPY docker/dev/entrypoint.sh /usr/local/bin/dev-entrypoint.sh
-RUN chmod +x /usr/local/bin/dev-entrypoint.sh
-
-ENV DEV_APP=api
 ENV NODE_ENV=development
 
 WORKDIR /app/apps/api
 
-ENTRYPOINT ["dev-entrypoint.sh"]
 EXPOSE 3000
 CMD ["pnpm", "dev"]
