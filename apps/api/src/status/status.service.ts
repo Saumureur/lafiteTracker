@@ -7,21 +7,33 @@ export class StatusService {
   constructor(private readonly config: ConfigService) {}
 
   async getStatus() {
-    const databaseUrl = this.config.get<string>('DATABASE_URL');
     let database: 'connected' | 'disconnected' | 'not_configured' =
       'not_configured';
 
-    if (databaseUrl) {
-      let pool: sql.ConnectionPool | undefined;
-      try {
-        pool = await sql.connect(databaseUrl);
-        await pool.request().query('SELECT 1');
-        database = 'connected';
-      } catch {
-        database = 'disconnected';
-      } finally {
-        await pool?.close();
-      }
+    let pool: sql.ConnectionPool | undefined;
+
+    try {
+      pool = await sql.connect({
+        user: 'sa',
+        password: 'Lafite_Secret1!',
+        server: '127.0.0.1',
+        port: 1433,
+        database: 'lafite_tracker',
+        options: {
+          encrypt: true,
+          trustServerCertificate: true,
+        },
+      });
+
+      await pool.request().query('SELECT 1');
+
+      database = 'connected';
+    } catch (error) {
+      console.error('SQL Server connection error:', error);
+
+      database = 'disconnected';
+    } finally {
+      await pool?.close();
     }
 
     return {

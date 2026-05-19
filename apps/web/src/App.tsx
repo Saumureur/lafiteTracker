@@ -12,7 +12,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+    const baseUrl = import.meta.env.VITE_API_URL ?? 'http://192.168.1.5:3000';
     fetch(`${baseUrl}/status`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
