@@ -5,6 +5,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY apps/api/package.json apps/api/
 RUN pnpm install --frozen-lockfile
 COPY apps/api apps/api
+RUN pnpm --filter @lafite/api exec prisma generate
 RUN pnpm --filter @lafite/api build
 
 FROM node:22-alpine AS runner

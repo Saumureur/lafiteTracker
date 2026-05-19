@@ -20,7 +20,9 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@nestjs/core",
-      "esbuild"
+      "@prisma/engines",
+      "esbuild",
+      "prisma"
     ]
   },
   "devDependencies": {
