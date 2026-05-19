@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 
 type ApiStatus = {
   status: string;
@@ -8,8 +9,37 @@ type ApiStatus = {
 };
 
 export default function App() {
+
   const [apiStatus, setApiStatus] = useState<ApiStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+
+
+useEffect(() => {
+
+  function onScanSuccess(decodedText:any, decodedResult:any) {
+    html5QrcodeScanner.clear();
+  // handle the scanned code as you like, for example:
+  console.log(`Code matched = ${decodedText}`, decodedResult);
+}
+  function onScanError() {
+  // handle the scanned code as you like, for example:
+  console.log(`Code not matched `);
+}
+
+  let config = {
+    fps: 10,
+    qrbox: {width: 100, height: 100},
+    rememberLastUsedCamera: true,
+    supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+  };
+
+  let html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader", config, /* verbose= */ false);
+  html5QrcodeScanner.render(onScanSuccess, onScanError);
+  
+  }, []);
+
 
   useEffect(() => {
     const baseUrl = import.meta.env.VITE_API_URL ?? 'http://192.168.1.5:3000';
@@ -31,6 +61,9 @@ export default function App() {
         {error && <p className="error">{error}</p>}
         {apiStatus && <pre>{JSON.stringify(apiStatus, null, 2)}</pre>}
         {!apiStatus && !error && <p>Chargement…</p>}
+      </section>
+      <section>
+        <div id="reader"/>
       </section>
     </main>
   );
