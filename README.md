@@ -7,4 +7,16 @@ To do list:
 - Enregistrement de parcelle ainsi que le sépage qui s'y trouve avec la position GPS avec le % de récolte effectué ce qui permet au employé d'avoir un suivis beaucoup plus précis
 - Quand on enregistre un palette un message de confirmation demandera si il y a bien au maximum 25 cagettes sur la pallete, lors du scan du QR Code on enregistreras à quel parcelle la palette apartiens, l'heure d'enregistrement, le poids de la tableau suivant un tableau défini ainsi que la remorque associé
 - Sur l'interface on devra voir en temps réel la mise à jour des informations sans recharger la page
-- 
+-
+
+
+
+
+
+
+
+qr code template:
+
+{
+    "palette": 1
+}
