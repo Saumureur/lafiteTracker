@@ -29,7 +29,7 @@ useEffect(() => {
 
   let config = {
     fps: 10,
-    qrbox: {width: 100, height: 100},
+    qrbox: {width: 400, height: 400},
     rememberLastUsedCamera: true,
     supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
   };
