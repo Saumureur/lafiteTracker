@@ -1,0 +1,34 @@
+/*
+  Warnings:
+
+  - You are about to drop the `Palette` table. If the table is not empty, all the data it contains will be lost.
+
+*/
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- DropTable
+DROP TABLE [dbo].[Palette];
+
+-- CreateTable
+CREATE TABLE [dbo].[Pallete] (
+    [id] INT NOT NULL IDENTITY(1,1),
+    [number] INT NOT NULL,
+    [createdAt] DATETIME2 NOT NULL CONSTRAINT [Pallete_createdAt_df] DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT [Pallete_pkey] PRIMARY KEY CLUSTERED ([id]),
+    CONSTRAINT [Pallete_number_key] UNIQUE NONCLUSTERED ([number])
+);
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

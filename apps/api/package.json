@@ -20,7 +20,11 @@
     "@prisma/client": "^7.8.0",
     "dotenv": "^17.4.2",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "swagger-ui": "^5.32.6",
+    "swagger-ui-dist": "^5.32.6",
+    "swagger-ui-express": "^5.0.1",
+    "swagger-ui-react": "^5.32.6"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.21",

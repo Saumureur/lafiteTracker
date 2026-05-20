@@ -17,11 +17,34 @@ export default function App() {
 
 useEffect(() => {
 
-  function onScanSuccess(decodedText:any, decodedResult:any) {
+  async function onScanSuccess(decodedText: string) {
     html5QrcodeScanner.clear();
-  // handle the scanned code as you like, for example:
-  console.log(`Code matched = ${decodedText}`, decodedResult);
-}
+
+    console.log("QR détecté :", decodedText);
+
+    const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+
+    // extrait le numéro
+    const number = decodedText.replace("palette:", "");
+
+    try {
+      const res = await fetch(`${baseUrl}/pallete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          number: Number(number),
+        }),
+      });
+
+      const data = await res.json();
+
+      console.log("Sauvegardé en DB :", data);
+    } catch (err) {
+      console.error("Erreur API :", err);
+    }
+  }
   function onScanError() {
   // handle the scanned code as you like, for example:
   console.log(`Code not matched `);
