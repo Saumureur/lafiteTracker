@@ -1,15 +1,6 @@
-/*
-  Warnings:
-
-  - You are about to drop the `Palette` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 BEGIN TRY
 
 BEGIN TRAN;
-
--- DropTable
-DROP TABLE [dbo].[Palette];
 
 -- CreateTable
 CREATE TABLE [dbo].[Pallete] (
