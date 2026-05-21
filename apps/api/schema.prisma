@@ -18,7 +18,7 @@ model User {
   createdAt DateTime @default(now())
 }
 
-model Pallete {
+model Palette {
   id        Int      @id @default(autoincrement())
   number    Int      @unique
   createdAt DateTime @default(now())

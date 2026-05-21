@@ -10,6 +10,15 @@ CREATE TABLE [dbo].[User] (
     CONSTRAINT [User_pkey] PRIMARY KEY CLUSTERED ([id])
 );
 
+-- CreateTable
+CREATE TABLE [dbo].[Palette] (
+    [id] INT NOT NULL IDENTITY(1,1),
+    [number] INT NOT NULL,
+    [createdAt] DATETIME2 NOT NULL CONSTRAINT [Palette_createdAt_df] DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT [Palette_pkey] PRIMARY KEY CLUSTERED ([id]),
+    CONSTRAINT [Palette_number_key] UNIQUE NONCLUSTERED ([number])
+);
+
 COMMIT TRAN;
 
 END TRY
