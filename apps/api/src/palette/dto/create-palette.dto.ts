@@ -9,4 +9,12 @@ export class CreatePaletteDto {
   @IsInt()
   @IsNotEmpty()
   number!: number;
+
+  @ApiProperty({ 
+    description: 'L\'ID du bon de vendange auquel associer cette palette', 
+    example: 1 
+  })
+  @IsInt()
+  @IsNotEmpty()
+  bonVendangeId!: number;
 }

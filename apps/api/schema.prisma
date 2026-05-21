@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "./src/generated/prisma"
@@ -18,8 +13,49 @@ model User {
   createdAt DateTime @default(now())
 }
 
+model BonVendange {
+  id        Int       @id @default(autoincrement())
+  remorque  String
+  parcelle  String
+  millesime Int
+  cuve      String?
+  status    String    @default("EN_COURS")
+
+  palettes  Palette[]
+  cagettes  Cagette[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 model Palette {
-  id        Int      @id @default(autoincrement())
-  number    Int      @unique
-  createdAt DateTime @default(now())
+  id            Int         @id @default(autoincrement())
+  number        Int
+  
+  bonVendangeId Int
+  bonVendange   BonVendange @relation(fields: [bonVendangeId], references: [id])
+  
+  cagettes      Cagette[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([number, bonVendangeId])
+}
+
+model Cagette {
+  id            Int         @id @default(autoincrement())
+  number        Int
+  poids         Float
+  
+  paletteId     Int
+  palette       Palette     @relation(fields: [paletteId], references: [id])
+
+  bonVendangeId Int
+  bonVendange   BonVendange @relation(fields: [bonVendangeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([number, bonVendangeId])
 }

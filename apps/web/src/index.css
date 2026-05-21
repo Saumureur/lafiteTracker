@@ -43,3 +43,44 @@ pre {
 .error {
   color: #e07a6a;
 }
+
+button {
+  background: #e8e4dc;
+  color: #1a1814;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button.secondary {
+  background: #3d3830;
+  color: #e8e4dc;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+input {
+  padding: 0.75rem;
+  border: 1px solid #3d3830;
+  border-radius: 6px;
+  background: #1a1814;
+  color: #e8e4dc;
+}
+
+.flex-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}

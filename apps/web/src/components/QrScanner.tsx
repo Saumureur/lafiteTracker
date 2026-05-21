@@ -1,13 +1,19 @@
 import { useEffect } from 'react';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
 
-export default function QrScanner() {
+interface QrScannerProps {
+  expectedKey: 'palette' | 'cagette';
+  onSuccess: (scannedNumber: number) => void;
+  onClose: () => void;
+}
+
+export default function QrScanner({ expectedKey, onSuccess, onClose }: QrScannerProps) {
   useEffect(() => {
     let html5QrcodeScanner = new Html5QrcodeScanner(
       "reader", 
       {
         fps: 10,
-        qrbox: { width: 400, height: 400 },
+        qrbox: { width: 300, height: 300 },
         rememberLastUsedCamera: true,
         supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
       }, 
@@ -15,59 +21,36 @@ export default function QrScanner() {
     );
 
     async function onScanSuccess(decodedText: string) {
-      html5QrcodeScanner.clear();
-      console.log("QR détecté :", decodedText);
-
-      let paletteNumber: number;
-
       try {
         const qrData = JSON.parse(decodedText);
         
-        if (qrData.palette === undefined) {
-          console.error("La clé 'palette' est introuvable dans le QR code.");
+        if (qrData[expectedKey] === undefined) {
+          console.error(`Mauvais QR Code. On attendait une ${expectedKey}.`);
           return;
         }
-        paletteNumber = qrData.palette;
+        
+        html5QrcodeScanner.clear();
+        onSuccess(Number(qrData[expectedKey]));
+        
       } catch (e) {
-        console.error("Le QR code scanné n'est pas un JSON valide :", decodedText);
-        return;
-      }
-
-      const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-
-      try {
-        const res = await fetch(`${baseUrl}/palette`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            number: Number(paletteNumber),
-          }),
-        });
-
-        const data = await res.json();
-        console.log("Sauvegardé en DB :", data);
-      } catch (err) {
-        console.error("Erreur API :", err);
+        console.error("Le QR code n'est pas un JSON valide.");
       }
     }
 
-    function onScanError() {
-    }
-
-    html5QrcodeScanner.render(onScanSuccess, onScanError);
+    html5QrcodeScanner.render(onScanSuccess, () => {});
 
     return () => {
-      html5QrcodeScanner.clear().catch(error => {
-        console.error("Erreur lors de l'arrêt du scanner :", error);
-      });
+      html5QrcodeScanner.clear().catch(() => {});
     };
-  }, []);
+  }, [expectedKey, onSuccess]);
 
   return (
-    <section>
-      <div id="reader" />
+    <section className="card" style={{ marginTop: '1rem', border: '2px solid #e8e4dc' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3>Scan de {expectedKey}</h3>
+        <button className="secondary" onClick={onClose}>Fermer la caméra</button>
+      </div>
+      <div id="reader" style={{ marginTop: '1rem' }} />
     </section>
   );
 }
