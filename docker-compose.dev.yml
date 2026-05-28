@@ -1,8 +1,7 @@
 x-dev-volumes: &dev-volumes
+  # On synchronise tout le projet d'un bloc. 
+  # Les raccourcis pnpm resteront ainsi sur le même "disque" virtuel.
   - .:/app:cached
-  - dev_node_modules:/app/node_modules
-  - dev_api_node_modules:/app/apps/api/node_modules
-  - dev_web_node_modules:/app/apps/web/node_modules
 
 services:
   db:
@@ -81,9 +80,7 @@ services:
 
 volumes:
   mssql_dev_data:
-  dev_node_modules:
-  dev_api_node_modules:
-  dev_web_node_modules:
+  # Les volumes node_modules isolés ont été supprimés
   portainer_data:
     name: portainer_data
 

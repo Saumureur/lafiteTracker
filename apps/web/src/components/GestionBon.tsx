@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import QrScanner from './QrScanner';
+import { apiFetch } from '../utils/api';
 
 interface Cagette {
   id: number;
@@ -39,12 +40,12 @@ export default function GestionBon({ bonId, onBack }: GestionBonProps) {
   const [scannerTarget, setScannerTarget] = useState<'palette' | 'cagette' | null>(null);
   const [activeCagetteIndex, setActiveCagetteIndex] = useState<number | null>(null);
 
-  const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+  const baseUrl = '/api';
 
   // 1. Récupération initiale du bon et de ses palettes/cagettes
   const fetchBonDetails = async () => {
     try {
-      const res = await fetch(`${baseUrl}/bon-vendange/${bonId}`);
+      const res = await apiFetch(`${baseUrl}/bon-vendange/${bonId}`);
       if (!res.ok) throw new Error('Impossible de charger le bon de vendange.');
       const data = await res.json();
       setBon(data);
@@ -83,9 +84,8 @@ export default function GestionBon({ bonId, onBack }: GestionBonProps) {
     if (scannerTarget === 'palette') {
       // Ajout d'une nouvelle palette au bon
       try {
-        const res = await fetch(`${baseUrl}/palette`, {
+        const res = await apiFetch(`${baseUrl}/palette`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ number: scannedNumber, bonVendangeId: bon.id }),
         });
         if (!res.ok) throw new Error('Erreur lors de l\'association de la palette.');
@@ -96,9 +96,8 @@ export default function GestionBon({ bonId, onBack }: GestionBonProps) {
     } else if (scannerTarget === 'cagette' && activePalette) {
       // Ajout ou mise à jour d'un numéro de cagette dans le tableau
       try {
-        const res = await fetch(`${baseUrl}/cagette`, {
+        const res = await apiFetch(`${baseUrl}/cagette`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             number: scannedNumber, 
             poids: 0, 
@@ -114,20 +113,56 @@ export default function GestionBon({ bonId, onBack }: GestionBonProps) {
     }
   };
 
-  // 3. Sauvegarde automatique (Auto-save) au changement de focus (onBlur)
-  const handleWeightBlur = async (cagetteId: number, poids: number) => {
-    // Optionnel : sauvegarde locale dans le localStorage en cas de coupure réseau
-    localStorage.setItem(`cagette_poids_${cagetteId}`, poids.toString());
+  // 1. Met à jour UNIQUEMENT l'affichage en direct à chaque clic de flèche ou frappe
+  const handleWeightChange = (cagetteId: number, poids: number) => {
+    setBon((prevBon) => {
+      if (!prevBon) return prevBon;
+      return {
+        ...prevBon,
+        palettes: prevBon.palettes.map((palette) => ({
+          ...palette,
+          cagettes: palette.cagettes.map((cagette) => 
+            cagette.id === cagetteId ? { ...cagette, poids: poids } : cagette
+          ),
+        })),
+      };
+    });
+  };
 
+  // 2. Envoie la donnée au serveur uniquement quand on valide
+  const handleWeightSave = async (cagetteId: number, poids: number) => {
+    localStorage.setItem(`cagette_poids_${cagetteId}`, poids.toString());
     try {
-      await fetch(`${baseUrl}/cagette/${cagetteId}`, {
+      const res = await apiFetch(`${baseUrl}/cagette/${cagetteId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ poids }),
       });
-      // Mise à jour visuelle discrète sans recharger tout le composant
+
+      if (res.ok) {-
+        await fetchBonDetails();
+      }
+
     } catch (err) {
-      console.warn("Échec de la sauvegarde serveur, donnée conservée localement :", err);
+      console.warn("Échec de la sauvegarde serveur :", err);
+    }
+  };
+
+  // Sauvegarde automatique de la cuve
+  const handleCuveBlur = async () => {
+    // Si la case est vide, on ne fait rien
+    if (cuve.trim() === '') return;
+
+    try {
+      const res = await apiFetch(`${baseUrl}/bon-vendange/${bonId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ cuve }),
+      });
+      if (res.ok) {
+        console.log("Cuve sauvegardée en base de données.");
+        await fetchBonDetails();
+      }
+    } catch (err) {
+      console.warn("Échec de la sauvegarde de la cuve :", err);
     }
   };
 
@@ -137,9 +172,8 @@ export default function GestionBon({ bonId, onBack }: GestionBonProps) {
     }
 
     try {
-      const res = await fetch(`${baseUrl}/bon-vendange/${bonId}/cloturer`, {
+      const res = await apiFetch(`${baseUrl}/bon-vendange/${bonId}/cloturer`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cuve }),
       });
       if (!res.ok) throw new Error('Erreur lors de la clôture.');
@@ -180,6 +214,7 @@ export default function GestionBon({ bonId, onBack }: GestionBonProps) {
           disabled={bon.status === 'CLOTURE'}
           value={cuve} 
           onChange={(e) => setCuve(e.target.value)}
+          onBlur={handleCuveBlur}
           placeholder="Ex: Cuve Inox A3"
         />
       </div>
@@ -240,8 +275,16 @@ export default function GestionBon({ bonId, onBack }: GestionBonProps) {
                         type="number"
                         disabled={!row.data || bon.status === 'CLOTURE'}
                         style={{ width: '100px', padding: '0.25rem' }}
-                        defaultValue={row.data?.poids ?? ''}
-                        onBlur={(e) => row.data && handleWeightBlur(row.data.id, Number(e.target.value))}
+                        value={row.data?.poids ?? ''} 
+                        onChange={(e) => row.data && handleWeightChange(row.data.id, Number(e.target.value))}
+                        onBlur={(e) => row.data && handleWeightSave(row.data.id, Number(e.target.value))}
+                        onKeyDown={(e) => {
+                          // Si l'opérateur appuie sur la touche Entrée, on retire le focus de la case
+                          // Ce qui déclenche automatiquement le onBlur et donc la sauvegarde !
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                          }
+                        }}
                         placeholder="0.0"
                       />
                     </td>
@@ -260,6 +303,31 @@ export default function GestionBon({ bonId, onBack }: GestionBonProps) {
             )}
           </div>
         )}
+      </div>
+
+      <div className="card" style={{ marginTop: '2rem', padding: '1rem', background: '#1a1814', borderRadius: '6px', borderTop: '2px solid #e07a6a' }}>
+        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Historique des modifications</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* @ts-ignore */}
+          {bon.logs && bon.logs.map((log: any) => (
+            <div key={log.id} style={{ padding: '10px', backgroundColor: '#26231e', borderRadius: '4px', fontSize: '0.9rem', borderLeft: '4px solid #e07a6a' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#a8a29e', marginBottom: '5px' }}>
+                <span><strong>{new Date(log.createdAt).toLocaleString('fr-FR')}</strong></span>
+                <span>Par : <strong>{log.username}</strong> ({log.role})</span>
+              </div>
+              <div style={{ color: '#e8e4dc' }}>
+                <span style={{ background: '#e07a6a', color: '#fff', padding: '2px 6px', borderRadius: '3px', marginRight: '10px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                  {log.action}
+                </span>
+                {log.details}
+              </div>
+            </div>
+          ))}
+          {/* @ts-ignore */}
+          {(!bon.logs || bon.logs.length === 0) && (
+            <p style={{ color: '#888', margin: 0 }}>Aucun historique disponible pour ce bon.</p>
+          )}
+        </div>
       </div>
 
       {/* Actions de Clôture */}
@@ -283,7 +351,7 @@ export default function GestionBon({ bonId, onBack }: GestionBonProps) {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
           background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }}>
-          <div style={{ width: '100%', maxWidth: '500px', padding: '1rem' }}>
+          <div style={{ width: '100%', maxWidth: '500px', height:'auto', padding: '1rem' }}>
             <QrScanner 
               expectedKey={scannerTarget}
               onSuccess={handleScanSuccess}

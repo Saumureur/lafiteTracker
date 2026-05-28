@@ -20,10 +20,18 @@ export class CreateBonVendangeDto {
 
   @ApiProperty({ 
     description: 'Le millésime (généré par défaut si non fourni)', 
-    example: 2026, 
-    required: false 
+    example: 2026//, 
+    //required: false 
   })
   @IsOptional()
   @IsInt()
   millesime?: number;
+
+  @ApiProperty({
+    description: 'Le sépage à choisir dans une liste',
+    example: 'test'
+  })
+  @IsString()
+  @IsNotEmpty()
+  sepage!: string;
 }

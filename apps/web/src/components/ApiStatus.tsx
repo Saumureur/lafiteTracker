@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiFetch } from '../utils/api';
 
 type ApiStatus = {
   status: string;
@@ -12,8 +13,8 @@ export default function ApiStatus() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_URL ?? 'http://192.168.1.5:3000';
-    fetch(`${baseUrl}/status`)
+    const baseUrl = '/api';
+    apiFetch(`${baseUrl}/status`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();

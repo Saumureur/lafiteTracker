@@ -5,6 +5,7 @@ import { StatusModule } from './status/status.module';
 import { PaletteModule } from './palette/palette.module';
 import { BonVendangeModule } from './bon-vendange/bon-vendange.module';
 import { CagetteModule } from './cagette/cagette.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CagetteModule } from './cagette/cagette.module';
     PaletteModule,
     BonVendangeModule,
     CagetteModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

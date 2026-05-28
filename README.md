@@ -20,3 +20,9 @@ qr code template:
 {
     "palette": 1
 }
+
+- Bon de vendange
+-- Opérateur parcelle -> Remorque (numéro), Parcelles, Sépage, Millésime
+-- Opérateur Chambre froide -> Pallette (Numéro et Suivant le nombre de cagette donc possible plusieurs palette mais il faut exactement 25 cagettes par palette), Cagette avec numéro et poids (La même palette ou numéro de cagette ne peut être uttilisé que 1 seul fois par bon de vendange)
+-- Opérateur Chambre froide -> Il associe ensuite le raisin de ce bon à une cuve et il clôture le bon côté vigne avec message de confirmation
+-- L'opérateur chai ->

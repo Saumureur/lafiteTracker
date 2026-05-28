@@ -17,6 +17,7 @@ model BonVendange {
   id        Int       @id @default(autoincrement())
   remorque  String
   parcelle  String
+  sepage    String
   millesime Int
   cuve      String?
   status    String    @default("EN_COURS")
@@ -25,7 +26,13 @@ model BonVendange {
   cagettes  Cagette[]
 
   createdAt DateTime  @default(now())
+  createdBy       String
+  createdWithRole String
   updatedAt DateTime  @updatedAt
+  updatedBy       String?
+  updatedWithRole String?
+
+  logs      HistoriqueBon[]
 }
 
 model Palette {
@@ -37,8 +44,12 @@ model Palette {
   
   cagettes      Cagette[]
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt DateTime  @default(now())
+  createdBy       String
+  createdWithRole String
+  updatedAt DateTime  @updatedAt
+  updatedBy       String?
+  updatedWithRole String?
 
   @@unique([number, bonVendangeId])
 }
@@ -54,8 +65,27 @@ model Cagette {
   bonVendangeId Int
   bonVendange   BonVendange @relation(fields: [bonVendangeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt DateTime  @default(now())
+  createdBy       String
+  createdWithRole String
+  updatedAt DateTime  @updatedAt
+  updatedBy       String?
+  updatedWithRole String?
 
   @@unique([number, bonVendangeId])
+}
+
+model HistoriqueBon {
+  id              Int          @id @default(autoincrement())
+  action          String       // ex: "CREATION", "MODIFICATION_CUVE", "CLOTURE"
+  details         String       // Un texte descriptif ou du JSON (ex: "Cuve modifiée : Cuve Inox A3")
+  createdAt       DateTime     @default(now())
+  
+  // Informations de l'auteur de l'action (issues du Token JWT)
+  username        String       // ex: "op.test"
+  role            String       // ex: "OPERATEUR"
+
+  // Liaison avec le bon de vendange concerné
+  bonVendangeId   Int
+  bonVendange     BonVendange  @relation(fields: [bonVendangeId], references: [id], onDelete: Cascade)
 }

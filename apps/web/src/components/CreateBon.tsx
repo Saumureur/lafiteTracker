@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiFetch } from '../utils/api';
 
 interface CreateBonProps {
   onSuccess: (bonId: number) => void;
@@ -9,6 +10,7 @@ export default function CreateBon({ onSuccess, onCancel }: CreateBonProps) {
   const [remorque, setRemorque] = useState('');
   const [parcelle, setParcelle] = useState('');
   const [millesime, setMillesime] = useState(new Date().getFullYear());
+  const [sepage, setSepage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,16 +19,23 @@ export default function CreateBon({ onSuccess, onCancel }: CreateBonProps) {
     setLoading(true);
     setError(null);
 
-    const baseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+    const baseUrl = '/api';
 
     try {
-      const res = await fetch(`${baseUrl}/bon-vendange`, {
+      const res = await apiFetch(`${baseUrl}/bon-vendange`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ remorque, parcelle, millesime }),
+        body: JSON.stringify({
+          remorque,
+          parcelle,
+          sepage,
+          millesime: Number(millesime),
+        }),
       });
 
-      if (!res.ok) throw new Error('Erreur lors de la création du bon');
+      if (!res.ok) {
+        if (res.status === 403) throw new Error("Vous devez être Administrateur pour créer un bon.");
+        throw new Error("Erreur serveur");
+      }
       
       const data = await res.json();
       onSuccess(data.id);
@@ -56,6 +65,18 @@ export default function CreateBon({ onSuccess, onCancel }: CreateBonProps) {
         <div className="form-group">
           <label>Millésime</label>
           <input type="number" required value={millesime} onChange={(e) => setMillesime(Number(e.target.value))} />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="sepage">Cépage</label>
+          <select id="sepage" value={sepage} onChange={(e) => setSepage(e.target.value)} required className="form-control">
+            <option value="">-- Choisir un cépage --</option>
+            <option value="Merlot">Merlot</option>
+            <option value="Cabernet Sauvignon">Cabernet Sauvignon</option>
+            <option value="Cabernet Franc">Cabernet Franc</option>
+            <option value="Sauvignon Blanc">Sauvignon Blanc</option>
+            <option value="Semillon">Sémillon</option>
+          </select>
         </div>
 
         <div className="flex-actions">
